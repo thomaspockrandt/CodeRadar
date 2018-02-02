@@ -62,13 +62,11 @@ namespace CodeRadar
         /// </summary>
         protected override void Initialize()
         {
-            EditNextMethodCommand.Initialize(this);
-            EditPreviousMethodCommand.Initialize(this);
-            ReadLineOutLoudCommand.Initialize(this);
-
-            var context = "CodeRadar";
             var dte = (DTE)GetService(typeof(DTE));
-            
+
+            EditNextMethodCommand.Initialize(this, dte);
+            EditPreviousMethodCommand.Initialize(this, dte);
+            ReadLineOutLoudCommand.Initialize(this, dte);         
 
             base.Initialize();
         }

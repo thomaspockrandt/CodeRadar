@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,7 +36,7 @@ namespace CodeRadar
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private EditNextMethodCommand(Package package)
+        private EditNextMethodCommand(Package package, DTE dte) : base(dte)
         {
             if (package == null)
             {
@@ -77,9 +78,9 @@ namespace CodeRadar
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)
+        public static void Initialize(Package package, DTE dte)
         {
-            Instance = new EditNextMethodCommand(package);
+            Instance = new EditNextMethodCommand(package, dte);
         }
 
         /// <summary>
@@ -91,12 +92,10 @@ namespace CodeRadar
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            var dte = DteHelpers.GetActiveDteInstance();
-            
-            base.InvokeEditNextMethod(dte);
+            base.InvokeEditNextMethod();
             //base.PlaySound();
 
-            var line = base.GetCurrentLineText(dte);
+            var line = base.GetCurrentLineText();
             var methodName = base.GetMethodName(line);
             base.SpeakText(methodName);
         }

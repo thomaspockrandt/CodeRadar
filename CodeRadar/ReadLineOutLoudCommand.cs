@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.Globalization;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -32,7 +33,7 @@ namespace CodeRadar
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private ReadLineOutLoudCommand(Package package)
+        private ReadLineOutLoudCommand(Package package, DTE dte) :base(dte)
         {
             if (package == null)
             {
@@ -74,9 +75,9 @@ namespace CodeRadar
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)
+        public static void Initialize(Package package, DTE dte)
         {
-            Instance = new ReadLineOutLoudCommand(package);
+            Instance = new ReadLineOutLoudCommand(package, dte);
         }
 
         /// <summary>
@@ -88,19 +89,16 @@ namespace CodeRadar
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            var dte = DteHelpers.GetActiveDteInstance();
-            var line = base.GetCurrentLineText(dte);
+            var line = base.GetCurrentLineText();
             if (line.StartsWith("// TODO: "))
             {
-                line = line.Substring(9);
+                line = $"To Do, {line.Substring(9)}";
             }
             else
             {
-                line = GetMethodName(line);
+                line = GetCleanLineOfCode(line);
             }
-
-            //TextManager.ge
-
+            
             base.SpeakText(line);
         }
     }

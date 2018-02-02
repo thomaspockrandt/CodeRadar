@@ -9,6 +9,13 @@ namespace CodeRadar
 {
     public class CommandBase
     {
+        private DTE dte;
+
+        public CommandBase(DTE dte)
+        {
+            this.dte = dte;
+        }
+
         public void PlaySound()
         {
             var mediaFile = Environment.ExpandEnvironmentVariables(@"%windir%\Media\chimes.wav");
@@ -18,9 +25,9 @@ namespace CodeRadar
             }
         }
 
-        public string GetCurrentLineText(DTE dte)
+        public string GetCurrentLineText()
         {
-            var selection = (TextSelection)dte.ActiveDocument.Selection;
+            var selection = (TextSelection)this.dte.ActiveDocument.Selection;
 
             var activePoint = selection.ActivePoint;
             selection.StartOfLine(vsStartOfLineOptions.vsStartOfLineOptionsFirstText);
@@ -33,21 +40,34 @@ namespace CodeRadar
             return line;
         }
 
-        internal void InvokeEditPreviousMethod(DTE dte)
+        internal void InvokeEditPreviousMethod()
         {            
-            dte.ExecuteCommand("Edit.PreviousMethod");
+            this.dte.ExecuteCommand("Edit.PreviousMethod");
         }
 
-        internal void InvokeEditNextMethod(DTE dte)
+        internal void InvokeEditNextMethod()
         {
-            dte.ExecuteCommand("Edit.NextMethod");
+            this.dte.ExecuteCommand("Edit.NextMethod");
         }
 
         internal string GetMethodName(string line)
         {
             var group = Regex.Match(line, @"\s([.\S]*)\(").Groups[1];
 
-            return string.IsNullOrWhiteSpace(group.Value) ? line : group.Value;
+            var name = string.IsNullOrWhiteSpace(group.Value) ? line : group.Value;
+
+            return name;
+        }
+
+        internal string GetCleanLineOfCode(string line)
+        {
+            var group = Regex.Match(line, @"\s([.\S]*)\(").Groups[1];
+
+            var cleanLine = string.IsNullOrWhiteSpace(group.Value) ? line : group.Value;
+
+            cleanLine = cleanLine.Replace(".", " ");
+
+            return cleanLine;
         }
 
         internal void SpeakText(string text)

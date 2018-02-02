@@ -59,23 +59,24 @@ namespace CodeRadar
         /// <param name="yPosition">Unused data type left over from base.GetLineTransform() </param>
         /// <param name="placement">Unused data type left over from base.GetLineTransform() </param>
         /// <returns>LineTransform object containing the desired scale value for the line</returns>
-        public LineTransform GetLineTransform(ITextViewLine line, double yPosition, ViewRelativePosition placement) 
+        public LineTransform GetLineTransform(ITextViewLine line, double yPosition, ViewRelativePosition placement)
         {
-            // Vertically compress lines that are far from the 
-            // caret (based on buffer lines, not view lines).
-
             var snapshot = _textView.TextSnapshot;
             int caretLineNumber = snapshot.GetLineNumberFromPosition(_textView.Caret.Position.BufferPosition);
             int lineNumber = snapshot.GetLineNumberFromPosition(line.Start);
             int delta = Math.Abs(caretLineNumber - lineNumber);
-            
-            double scale;
-            if (delta <= 5)
-                scale = 1.0;
-            else
-                scale = 0.5;
 
-            return new LineTransform(0.0, 0.0, scale);
+            if (delta <= 5)
+            {
+                var text = snapshot.GetText(line.Start, line.Length);
+                var emptyLine = string.IsNullOrWhiteSpace(text);
+                if (emptyLine)
+                    return new LineTransform(0, 0, 0.6);
+                else
+                    return new LineTransform(0, 0, 1.3);
+            }
+
+            return new LineTransform(0, 0, 0.6);
         }
         #endregion
     }

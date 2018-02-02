@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace CodeRadar
@@ -9,12 +13,14 @@ namespace CodeRadar
     /// <summary>
     /// Margin's canvas and visual definition including both size and content
     /// </summary>
-    internal class EditorMargin1 : Canvas, IWpfTextViewMargin
+    internal class ProminentEventMargin : Canvas, IWpfTextViewMargin
     {
         /// <summary>
         /// Margin name.
         /// </summary>
-        public const string MarginName = "EditorMargin1";
+        public const string MarginName = "ProminentEventMargin";
+
+        private readonly DTE2 dte;
 
         /// <summary>
         /// A value indicating whether the object is disposed.
@@ -24,11 +30,14 @@ namespace CodeRadar
         private Label label;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EditorMargin1"/> class for a given <paramref name="textView"/>.
+        /// Initializes a new instance of the <see cref="ProminentEventMargin"/> class for a given <paramref name="textView"/>.
         /// </summary>
         /// <param name="textView">The <see cref="IWpfTextView"/> to attach the margin to.</param>
-        public EditorMargin1(IWpfTextView textView)
+        public ProminentEventMargin(IWpfTextView textView)
         {
+            this.dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
+            this.dte.Events.TextEditorEvents.LineChanged += TextEditorEvents_LineChanged;
+            
             this.Height = 100;
             this.ClipToBounds = true;
             this.Background = new SolidColorBrush(Colors.PaleVioletRed);
@@ -36,7 +45,7 @@ namespace CodeRadar
             this.label = new Label
             {
                 FontWeight = FontWeights.Bold,
-                Margin = new Thickness(625, 25, 0, 0),
+                Margin = new Thickness(200, 25, 0, 0),
                 FontSize = 27,
                 Content = ")   Expected!",
             };
@@ -114,11 +123,11 @@ namespace CodeRadar
         /// <exception cref="ArgumentNullException"><paramref name="marginName"/> is null.</exception>
         public ITextViewMargin GetTextViewMargin(string marginName)
         {
-            return string.Equals(marginName, EditorMargin1.MarginName, StringComparison.OrdinalIgnoreCase) ? this : null;
+            return string.Equals(marginName, ProminentEventMargin.MarginName, StringComparison.OrdinalIgnoreCase) ? this : null;
         }
 
         /// <summary>
-        /// Disposes an instance of <see cref="EditorMargin1"/> class.
+        /// Disposes an instance of <see cref="ProminentEventMargin"/> class.
         /// </summary>
         public void Dispose()
         {
@@ -130,6 +139,21 @@ namespace CodeRadar
         }
 
         #endregion
+
+        private void TextEditorEvents_LineChanged(TextPoint StartPoint, TextPoint EndPoint, int Hint)
+        {
+            ErrorList errList = this.dte.ToolWindows.ErrorList;
+
+            var list = new List<string>();
+            int count = errList.ErrorItems.Count;
+            if (count != 0)
+            {
+                for (int i = 1; i <= count; i++)
+                {
+                    list.Add(errList.ErrorItems.Item(i).Description.ToString());
+                }
+            }
+        }
 
         /// <summary>
         /// Checks and throws <see cref="ObjectDisposedException"/> if the object is disposed.
